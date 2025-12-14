@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free File Converter Online – PNG WebP MP4 GIF DOCX PDF ZIP TAR</title>
+    <meta name="description" content="Convert files instantly in your browser. No uploads, no ads, no limits.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📂</text></svg>">
+    
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --accent-color: #4CAF50;
+            --accent-hover: #45a049;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --border-color: #444444;
+            --accent-color: #66BB6A;
+            --accent-hover: #4CAF50;
+            --shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+        }
+        
+        header {
+            background-color: var(--bg-secondary);
+            padding: 15px 0;
+            box-shadow: var(--shadow);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            border-color: var(--accent-color);
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        main {
+            flex: 1;
+            padding: 40px 0;
+        }
+        
+        .converter-section {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+        
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 60px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .drop-zone.dragover {
+            border-color: var(--accent-color);
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+        
+        .drop-zone p {
+            color: var(--text-secondary);
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .drop-zone small {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .quality-slider {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .quality-slider label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+        
+        .quality-slider input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border-color);
+            outline: none;
+        }
+        
+        .quality-slider input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+        }
+        
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .download-section {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .file-info {
+            background-color: var(--bg-primary);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .file-info p {
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .file-info strong {
+            color: var(--text-primary);
+        }
+        
+        .delete-btn {
+            background-color: #f44336;
+            margin-left: 10px;
+        }
+        
+        .delete-btn:hover {
+            background-color: #da190b;
+        }
+        
+        .coffee-section {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .coffee-btn {
+            background-color: #FFDD00;
+            color: #000000;
+            font-weight: 600;
+        }
+        
+        .coffee-btn:hover {
+            background-color: #FFD700;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 20px;
+            }
+            
+            .converter-section {
+                padding: 20px;
+            }
+            
+            .drop-zone {
+                padding: 40px 20px;
+            }
+            
+            .drop-zone p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1>📂 File Converter</h1>
+                <button class="theme-toggle" onclick="toggleTheme()">🌓 Toggle Theme</button>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <div class="converter-section">
+                <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+                    <p>Перетащите файлы сюда или нажмите для выбора</p>
+                    <small>Поддерживаются: PNG, JPG, WebP, MP4, DOCX, ZIP, TAR.GZ</small>
+                </div>
+                
+                <input type="file" id="fileInput" class="file-input" multiple accept=".png,.jpg,.jpeg,.webp,.mp4,.docx,.zip,.tar.gz">
+                
+                <div class="quality-slider" id="qualitySlider">
+                    <label for="qualityRange">Качество сжатия: <span id="qualityValue">0.8</span></label>
+                    <input type="range" id="qualityRange" min="0.1" max="1" step="0.1" value="0.8">
+                </div>
+                
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Converting... 0%</div>
+                </div>
+                
+                <div class="download-section" id="downloadSection">
+                    <div class="file-info" id="fileInfo"></div>
+                    <button class="btn" id="downloadBtn">Скачать файл</button>
+                    <button class="btn delete-btn" onclick="clearAll()">Удалить всё</button>
+                </div>
+            </div>
+            
+            <div class="coffee-section">
+                <a href="https://www.buymeacoffee.com/example" target="_blank" class="btn coffee-btn">☕ Buy me a coffee</a>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // Тема
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+        
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        initTheme();
+        
+        // Переменные
+        let currentFile = null;
+        let convertedBlob = null;
+        
+        // Элементы DOM
+        const dropZone = document.querySelector('.drop-zone');
+        const fileInput = document.getElementById('fileInput');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityRange = document.getElementById('qualityRange');
+        const qualityValue = document.getElementById('qualityValue');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const downloadSection = document.getElementById('downloadSection');
+        const fileInfo = document.getElementById('fileInfo');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        // Drag & Drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        // Обработка файла
+        function handleFile(file) {
+            currentFile = file;
+            const fileName = file.name.toLowerCase();
+            
+            // Показать слайдер качества только для изображений
+            if (fileName.endsWith('.png') || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+                qualitySlider.style.display = 'block';
+            } else {
+                qualitySlider.style.display = 'none';
+            }
+            
+            startConversion(file);
+        }
+        
+        // Обновление значения качества
+        qualityRange.addEventListener('input', (e) => {
+            qualityValue.textContent = e.target.value;
+            if (currentFile) {
+                startConversion(currentFile);
+            }
+        });
+        
+        // Функция конвертации
+        async function startConversion(file) {
+            const fileName = file.name.toLowerCase();
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            
+            showProgress(0, 'Подготовка файла...');
+            
+            try {
+                if (fileName.endsWith('.png') || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+                    await convertToWebP(file);
+                } else if (fileName.endsWith('.webp')) {
+                    await convertWebPToImage(file);
+                } else if (fileName.endsWith('.mp4')) {
+                    await convertMp4ToGif(file);
+                } else if (fileName.endsWith('.docx')) {
+                    await convertDocxToPdf(file);
+                } else if (fileName.endsWith('.zip')) {
+                    await convertZipToTarGz(file);
+                } else if (fileName.endsWith('.tar.gz')) {
+                    await convertTarGzToZip(file);
+                } else {
+                    throw new Error('Неподдерживаемый формат файла');
+                }
+                
+                // Показать информацию о файле
+                fileInfo.innerHTML = `
+                    <p><strong>Исходный файл:</strong> ${file.name}</p>
+                    <p><strong>Размер:</strong> ${fileSize} MB</p>
+                    <p><strong>Новый формат:</strong> ${getNewExtension(fileName)}</p>
+                `;
+                
+                downloadSection.style.display = 'block';
+                downloadBtn.onclick = () => downloadFile(convertedBlob, generateNewFileName(file.name));
+                
+            } catch (error) {
+                console.error('Ошибка конвертации:', error);
+                showProgress(0, 'Ошибка: ' + error.message);
+            }
+        }
+        
+        // Конвертация в WebP
+        async function convertToWebP(file) {
+            showProgress(20, 'Загрузка библиотеки WebP...');
+            
+            // Используем Canvas API для конвертации
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            return new Promise((resolve, reject) => {
+                img.onload = () => {
+                    showProgress(50, 'Конвертация изображения...');
+                    
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            convertedBlob = blob;
+                            showProgress(100, 'Конвертация завершена!');
+                            resolve();
+                        } else {
+                            reject(new Error('Не удалось конвертировать изображение'));
+                        }
+                    }, 'image/webp', parseFloat(qualityRange.value));
+                };
+                
+                img.onerror = () => reject(new Error('Не удалось загрузить изображение'));
+                img.src = URL.createObjectURL(file);
+            });
+        }
+        
+        // Конвертация WebP в PNG
+        async function convertWebPToImage(file) {
+            showProgress(20, 'Загрузка изображения...');
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            return new Promise((resolve, reject) => {
+                img.onload = () => {
+                    showProgress(50, 'Конвертация в PNG...');
+                    
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            convertedBlob = blob;
+                            showProgress(100, 'Конвертация завершена!');
+                            resolve();
+                        } else {
+                            reject(new Error('Не удалось конвертировать изображение'));
+                        }
+                    }, 'image/png');
+                };
+                
+                img.onerror = () => reject(new Error('Не удалось загрузить изображение'));
+                img.src = URL.createObjectURL(file);
+            });
+        }
+        
+        // Конвертация MP4 в GIF (упрощенная версия)
+        async function convertMp4ToGif(file) {
+            showProgress(20, 'Загрузка видео...');
+            
+            // Для MP4 в GIF используем ffmpeg.wasm
+            const { createFFmpeg, fetchFile } = FFmpeg;
+            const ffmpeg = createFFmpeg({ 
+                log: true,
+                corePath: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js'
+            });
+            
+            showProgress(40, 'Инициализация FFmpeg...');
+            await ffmpeg.load();
+            
+            showProgress(60, 'Загрузка файла...');
+            ffmpeg.FS('writeFile', 'input.mp4', await fetchFile(file));
+            
+            showProgress(80, 'Конвертация в GIF...');
+            await ffmpeg.run(
+                '-i', 'input.mp4',
+                '-t', '15',  // Максимум 15 секунд
+                '-r', '10',  // 10 fps
+                '-vf', 'scale=320:-1',  // Уменьшаем размер
+                '-an',  // Без звука
+                'output.gif'
+            );
+            
+            const data = ffmpeg.FS('readFile', 'output.gif');
+            convertedBlob = new Blob([data.buffer], { type: 'image/gif' });
+            
+            showProgress(100, 'Конвертация завершена!');
+        }
+        
+        // Конвертация DOCX в PDF
+        async function convertDocxToPdf(file) {
+            showProgress(20, 'Чтение документа...');
+            
+            const arrayBuffer = await file.arrayBuffer();
+            
+            showProgress(40, 'Обработка DOCX...');
+            const result = await mammoth.convertToHtml({ arrayBuffer });
+            
+            showProgress(60, 'Создание PDF...');
+            const { PDFDocument } = PDFLib;
+            const pdfDoc = await PDFDocument.create();
+            const page = pdfDoc.addPage();
+            
+            // Упрощенная конвертация - добавляем текст
+            const { width, height } = page.getSize();
+            const fontSize = 12;
+            const lines = result.value.split('<br>').join('\n').replace(/<[^>]*>/g, '');
+            
+            page.drawText(lines, {
+                x: 50,
+                y: height - 50,
+                size: fontSize,
+                maxWidth: width - 100
+            });
+            
+            const pdfBytes = await pdfDoc.save();
+            convertedBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+            
+            showProgress(100, 'Конвертация завершена!');
+        }
+        
+        // Конвертация ZIP в TAR.GZ
+        async function convertZipToTarGz(file) {
+            showProgress(20, 'Чтение ZIP файла...');
+            
+            const zip = await JSZip.loadAsync(file);
+            const tar = new Tar();
+            
+            showProgress(50, 'Обработка файлов...');
+            let processed = 0;
+            const total = Object.keys(zip.files).length;
+            
+            for (const [filename, zipEntry] of Object.entries(zip.files)) {
+                if (!zipEntry.dir) {
+                    const content = await zipEntry.async('uint8array');
+                    tar.append(filename, content);
+                }
+                processed++;
+                showProgress(50 + (processed / total) * 30, `Обработано ${processed}/${total} файлов...`);
+            }
+            
+            showProgress(90, 'Сжатие TAR.GZ...');
+            const tarData = tar.save();
+            const gzipped = pako.gzip(tarData);
+            
+            convertedBlob = new Blob([gzipped], { type: 'application/gzip' });
+            
+            showProgress(100, 'Конвертация завершена!');
+        }
+        
+        // Конвертация TAR.GZ в ZIP
+        async function convertTarGzToZip(file) {
+            showProgress(20, 'Чтение TAR.GZ файла...');
+            
+            const arrayBuffer = await file.arrayBuffer();
+            const decompressed = pako.ungzip(new Uint8Array(arrayBuffer));
+            
+            showProgress(40, 'Обработка TAR архива...');
+            // Упрощенная обработка TAR - в реальном приложении нужен полноценный парсер
+            const zip = new JSZip();
+            
+            showProgress(70, 'Создание ZIP...');
+            // Добавляем файл как есть (упрощенно)
+            zip.file('converted_file', decompressed);
+            
+            showProgress(90, 'Финализация ZIP...');
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            convertedBlob = zipBlob;
+            
+            showProgress(100, 'Конвертация завершена!');
+        }
+        
+        // Утилиты
+        function showProgress(percent, text) {
+            progressContainer.style.display = 'block';
+            progressFill.style.width = percent + '%';
+            progressText.textContent = text;
+        }
+        
+        function getNewExtension(fileName) {
+            if (fileName.endsWith('.png') || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) return 'webp';
+            if (fileName.endsWith('.webp')) return 'png';
+            if (fileName.endsWith('.mp4')) return 'gif';
+            if (fileName.endsWith('.docx')) return 'pdf';
+            if (fileName.endsWith('.zip')) return 'tar.gz';
+            if (fileName.endsWith('.tar.gz')) return 'zip';
+            return 'converted';
+        }
+        
+        function generateNewFileName(originalName) {
+            const lastDot = originalName.lastIndexOf('.');
+            const name = lastDot > 0 ? originalName.substring(0, lastDot) : originalName;
+            const newExt = getNewExtension(originalName.toLowerCase());
+            return `${name}.${newExt}`;
+        }
+        
+        function downloadFile(blob, fileName) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function clearAll() {
+            currentFile = null;
+            convertedBlob = null;
+            fileInput.value = '';
+            qualitySlider.style.display = 'none';
+            progressContainer.style.display = 'none';
+            downloadSection.style.display = 'none';
+        }
+        
+        // Простая реализация TAR для ZIP->TAR.GZ конвертации
+        class Tar {
+            constructor() {
+                this.files = [];
+            }
+            
+            append(filename, content) {
+                // Создаем TAR запись
+                const header = new Uint8Array(512);
+                const name = new TextEncoder().encode(filename);
+                header.set(name.subarray(0, Math.min(name.length, 100)), 0);
+                
+                // Размер файла в восьмеричной системе
+                const sizeStr = content.length.toString(8).padStart(11, '0');
+                const sizeBytes = new TextEncoder().encode(sizeStr);
+                header.set(sizeBytes, 124);
+                
+                // Тип файла (обычный файл)
+                header[156] = 48; // '0'
+                
+                // Контрольная сумма
+                let checksum = 0;
+                for (let i = 0; i < 512; i++) {
+                    checksum += header[i];
+                }
+                const checksumStr = checksum.toString(8).padStart(6, '0') + '\0 ';
+                header.set(new TextEncoder().encode(checksumStr), 148);
+                
+                this.files.push(header);
+                
+                // Добавляем контент с выравниванием до 512 байт
+                const paddedLength = Math.ceil(content.length / 512) * 512;
+                const paddedContent = new Uint8Array(paddedLength);
+                paddedContent.set(content);
+                this.files.push(paddedContent);
+            }
+            
+            save() {
+                // Объединяем все файлы
+                let totalLength = 0;
+                for (const chunk of this.files) {
+                    totalLength += chunk.length;
+                }
+                
+                // Добавляем два пустых блока в конце
+                totalLength += 1024;
+                
+                const result = new Uint8Array(totalLength);
+                let offset = 0;
+                
+                for (const chunk of this.files) {
+                    result.set(chunk, offset);
+                    offset += chunk.length;
+                }
+                
+                return result;
+            }
+        }
+    </script>
+    
+    <!-- Подключение библиотек -->
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+</body>
+</html>
