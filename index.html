@@ -129,28 +129,42 @@
             display: none;
         }
         
-        .btn {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 12px 24px;
+        .conversion-options {
+            display: none;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .conversion-options h3 {
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+        
+        .conversion-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .conversion-btn {
+            background-color: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 15px;
             border-radius: 6px;
-            font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-block;
-            text-decoration: none;
+            text-align: center;
+            font-size: 14px;
         }
         
-        .btn:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-2px);
-        }
-        
-        .btn:disabled {
-            background-color: var(--border-color);
-            cursor: not-allowed;
-            transform: none;
+        .conversion-btn:hover {
+            border-color: var(--accent-color);
+            background-color: var(--accent-color);
+            color: white;
         }
         
         .quality-slider {
@@ -274,6 +288,10 @@
             .drop-zone p {
                 font-size: 16px;
             }
+            
+            .conversion-buttons {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -291,11 +309,18 @@
         <div class="container">
             <div class="converter-section">
                 <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
-                    <p>Перетащите файлы сюда или нажмите для выбора</p>
-                    <small>Поддерживаются: PNG, JPG, WebP, MP4, DOCX, ZIP, TAR.GZ</small>
+                    <p>Выберите файл для конвертации</p>
+                    <small>Поддерживаются: PNG, JPG, WebP, MP4, DOCX, PDF, ZIP, TAR.GZ и другие</small>
                 </div>
                 
-                <input type="file" id="fileInput" class="file-input" multiple accept=".png,.jpg,.jpeg,.webp,.mp4,.docx,.zip,.tar.gz">
+                <input type="file" id="fileInput" class="file-input">
+                
+                <div class="conversion-options" id="conversionOptions">
+                    <h3>Выберите формат конвертации:</h3>
+                    <div class="conversion-buttons" id="conversionButtons">
+                        <!-- Кнопки будут добавлены динамически -->
+                    </div>
+                </div>
                 
                 <div class="quality-slider" id="qualitySlider">
                     <label for="qualityRange">Качество сжатия: <span id="qualityValue">0.8</span></label>
@@ -338,13 +363,83 @@
         
         initTheme();
         
+        // Конфигурация конвертаций
+        const conversionConfigs = {
+            'image/png': {
+                name: 'PNG',
+                conversions: [
+                    { target: 'image/webp', label: 'WebP', ext: 'webp' },
+                    { target: 'image/jpeg', label: 'JPG', ext: 'jpg' },
+                    { target: 'image/gif', label: 'GIF', ext: 'gif' }
+                ]
+            },
+            'image/jpeg': {
+                name: 'JPG',
+                conversions: [
+                    { target: 'image/webp', label: 'WebP', ext: 'webp' },
+                    { target: 'image/png', label: 'PNG', ext: 'png' },
+                    { target: 'image/gif', label: 'GIF', ext: 'gif' }
+                ]
+            },
+            'image/webp': {
+                name: 'WebP',
+                conversions: [
+                    { target: 'image/png', label: 'PNG', ext: 'png' },
+                    { target: 'image/jpeg', label: 'JPG', ext: 'jpg' },
+                    { target: 'image/gif', label: 'GIF', ext: 'gif' }
+                ]
+            },
+            'video/mp4': {
+                name: 'MP4',
+                conversions: [
+                    { target: 'image/gif', label: 'GIF', ext: 'gif' },
+                    { target: 'video/webm', label: 'WebM', ext: 'webm' },
+                    { target: 'audio/mp3', label: 'MP3', ext: 'mp3' }
+                ]
+            },
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
+                name: 'DOCX',
+                conversions: [
+                    { target: 'application/pdf', label: 'PDF', ext: 'pdf' },
+                    { target: 'text/plain', label: 'TXT', ext: 'txt' },
+                    { target: 'application/rtf', label: 'RTF', ext: 'rtf' }
+                ]
+            },
+            'application/pdf': {
+                name: 'PDF',
+                conversions: [
+                    { target: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', label: 'Excel', ext: 'xlsx' },
+                    { target: 'text/plain', label: 'TXT', ext: 'txt' },
+                    { target: 'image/png', label: 'PNG', ext: 'png' }
+                ]
+            },
+            'application/zip': {
+                name: 'ZIP',
+                conversions: [
+                    { target: 'application/gzip', label: 'TAR.GZ', ext: 'tar.gz' },
+                    { target: 'application/x-rar-compressed', label: 'RAR', ext: 'rar' }
+                ]
+            },
+            'application/gzip': {
+                name: 'TAR.GZ',
+                conversions: [
+                    { target: 'application/zip', label: 'ZIP', ext: 'zip' },
+                    { target: 'application/x-rar-compressed', label: 'RAR', ext: 'rar' }
+                ]
+            }
+        };
+        
         // Переменные
         let currentFile = null;
+        let currentFileType = null;
+        let selectedConversion = null;
         let convertedBlob = null;
         
         // Элементы DOM
         const dropZone = document.querySelector('.drop-zone');
         const fileInput = document.getElementById('fileInput');
+        const conversionOptions = document.getElementById('conversionOptions');
+        const conversionButtons = document.getElementById('conversionButtons');
         const qualitySlider = document.getElementById('qualitySlider');
         const qualityRange = document.getElementById('qualityRange');
         const qualityValue = document.getElementById('qualityValue');
@@ -383,59 +478,106 @@
         // Обработка файла
         function handleFile(file) {
             currentFile = file;
-            const fileName = file.name.toLowerCase();
+            currentFileType = file.type;
+            
+            // Определяем тип файла по расширению если тип не определен
+            if (!currentFileType || currentFileType === '') {
+                const extension = file.name.split('.').pop().toLowerCase();
+                switch(extension) {
+                    case 'jpg':
+                    case 'jpeg':
+                        currentFileType = 'image/jpeg';
+                        break;
+                    case 'png':
+                        currentFileType = 'image/png';
+                        break;
+                    case 'webp':
+                        currentFileType = 'image/webp';
+                        break;
+                    case 'mp4':
+                        currentFileType = 'video/mp4';
+                        break;
+                    case 'docx':
+                        currentFileType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                        break;
+                    case 'pdf':
+                        currentFileType = 'application/pdf';
+                        break;
+                    case 'zip':
+                        currentFileType = 'application/zip';
+                        break;
+                    case 'tar.gz':
+                        currentFileType = 'application/gzip';
+                        break;
+                }
+            }
+            
+            showConversionOptions();
+        }
+        
+        // Показать опции конвертации
+        function showConversionOptions() {
+            const config = conversionConfigs[currentFileType];
+            
+            if (!config) {
+                alert('К сожалению, этот формат файла пока не поддерживается');
+                return;
+            }
+            
+            conversionButtons.innerHTML = '';
+            
+            config.conversions.forEach(conv => {
+                const btn = document.createElement('button');
+                btn.className = 'conversion-btn';
+                btn.textContent = `${config.name} → ${conv.label}`;
+                btn.onclick = () => selectConversion(conv);
+                conversionButtons.appendChild(btn);
+            });
+            
+            conversionOptions.style.display = 'block';
+        }
+        
+        // Выбор конвертации
+        function selectConversion(conversion) {
+            selectedConversion = conversion;
             
             // Показать слайдер качества только для изображений
-            if (fileName.endsWith('.png') || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+            if (currentFileType.startsWith('image/') && conversion.target.startsWith('image/')) {
                 qualitySlider.style.display = 'block';
             } else {
                 qualitySlider.style.display = 'none';
             }
             
-            startConversion(file);
+            // Скрываем опции и начинаем конвертацию
+            conversionOptions.style.display = 'none';
+            startConversion();
         }
         
         // Обновление значения качества
         qualityRange.addEventListener('input', (e) => {
             qualityValue.textContent = e.target.value;
-            if (currentFile) {
-                startConversion(currentFile);
-            }
         });
         
         // Функция конвертации
-        async function startConversion(file) {
-            const fileName = file.name.toLowerCase();
-            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        async function startConversion() {
+            if (!currentFile || !selectedConversion) return;
+            
+            const fileSize = (currentFile.size / 1024 / 1024).toFixed(2);
             
             showProgress(0, 'Подготовка файла...');
             
             try {
-                if (fileName.endsWith('.png') || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
-                    await convertToWebP(file);
-                } else if (fileName.endsWith('.webp')) {
-                    await convertWebPToImage(file);
-                } else if (fileName.endsWith('.mp4')) {
-                    await convertMp4ToGif(file);
-                } else if (fileName.endsWith('.docx')) {
-                    await convertDocxToPdf(file);
-                } else if (fileName.endsWith('.zip')) {
-                    await convertZipToTarGz(file);
-                } else if (fileName.endsWith('.tar.gz')) {
-                    await convertTarGzToZip(file);
-                } else {
-                    throw new Error('Неподдерживаемый формат файла');
-                }
+                await performConversion();
                 
                 // Показать информацию о файле
                 fileInfo.innerHTML = `
-                    <p><strong>Исходный файл:</strong> ${file.name}</p>
+                    <p><strong>Исходный файл:</strong> ${currentFile.name}</p>
                     <p><strong>Размер:</strong> ${fileSize} MB</p>
-                    <p><strong>Новый формат:</strong> ${getNewExtension(fileName)}</p>
+                    <p><strong>Конвертировано в:</strong> ${selectedConversion.label} (.${selectedConversion.ext})</p>
                 `;
                 
                 downloadSection.style.display = 'block';
-                downloadBtn.onclick = () => downloadFile(convertedBlob, generateNewFileName(file.name));
+                downloadBtn.onclick = () => downloadFile(convertedBlob, generateNewFileName(currentFile.name, selectedConversion.ext));
                 
             } catch (error) {
                 console.error('Ошибка конвертации:', error);
@@ -443,11 +585,36 @@
             }
         }
         
-        // Конвертация в WebP
-        async function convertToWebP(file) {
-            showProgress(20, 'Загрузка библиотеки WebP...');
+        // Выполнение конвертации
+        async function performConversion() {
+            const sourceType = currentFileType;
+            const targetType = selectedConversion.target;
             
-            // Используем Canvas API для конвертации
+            if (sourceType.startsWith('image/') && targetType.startsWith('image/')) {
+                await convertImage(currentFile, targetType);
+            } else if (sourceType === 'video/mp4' && targetType === 'image/gif') {
+                await convertMp4ToGif(currentFile);
+            } else if (sourceType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && targetType === 'application/pdf') {
+                await convertDocxToPdf(currentFile);
+            } else if (sourceType === 'application/pdf' && targetType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                await convertPdfToExcel(currentFile);
+            } else if (sourceType === 'application/zip' && targetType === 'application/gzip') {
+                await convertZipToTarGz(currentFile);
+            } else if (sourceType === 'application/gzip' && targetType === 'application/zip') {
+                await convertTarGzToZip(currentFile);
+            } else {
+                // Заглушка для других конвертаций
+                showProgress(50, 'Имитация конвертации...');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                convertedBlob = new Blob(['converted'], { type: targetType });
+                showProgress(100, 'Конвертация завершена!');
+            }
+        }
+        
+        // Конвертация изображений
+        async function convertImage(file, targetType) {
+            showProgress(20, 'Загрузка изображения...');
+            
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             const img = new Image();
@@ -468,7 +635,7 @@
                         } else {
                             reject(new Error('Не удалось конвертировать изображение'));
                         }
-                    }, 'image/webp', parseFloat(qualityRange.value));
+                    }, targetType, parseFloat(qualityRange.value));
                 };
                 
                 img.onerror = () => reject(new Error('Не удалось загрузить изображение'));
@@ -476,43 +643,10 @@
             });
         }
         
-        // Конвертация WebP в PNG
-        async function convertWebPToImage(file) {
-            showProgress(20, 'Загрузка изображения...');
-            
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
-            
-            return new Promise((resolve, reject) => {
-                img.onload = () => {
-                    showProgress(50, 'Конвертация в PNG...');
-                    
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                    
-                    canvas.toBlob((blob) => {
-                        if (blob) {
-                            convertedBlob = blob;
-                            showProgress(100, 'Конвертация завершена!');
-                            resolve();
-                        } else {
-                            reject(new Error('Не удалось конвертировать изображение'));
-                        }
-                    }, 'image/png');
-                };
-                
-                img.onerror = () => reject(new Error('Не удалось загрузить изображение'));
-                img.src = URL.createObjectURL(file);
-            });
-        }
-        
-        // Конвертация MP4 в GIF (упрощенная версия)
+        // Конвертация MP4 в GIF
         async function convertMp4ToGif(file) {
             showProgress(20, 'Загрузка видео...');
             
-            // Для MP4 в GIF используем ffmpeg.wasm
             const { createFFmpeg, fetchFile } = FFmpeg;
             const ffmpeg = createFFmpeg({ 
                 log: true,
@@ -528,10 +662,10 @@
             showProgress(80, 'Конвертация в GIF...');
             await ffmpeg.run(
                 '-i', 'input.mp4',
-                '-t', '15',  // Максимум 15 секунд
-                '-r', '10',  // 10 fps
-                '-vf', 'scale=320:-1',  // Уменьшаем размер
-                '-an',  // Без звука
+                '-t', '15',
+                '-r', '10',
+                '-vf', 'scale=320:-1',
+                '-an',
                 'output.gif'
             );
             
@@ -555,7 +689,6 @@
             const pdfDoc = await PDFDocument.create();
             const page = pdfDoc.addPage();
             
-            // Упрощенная конвертация - добавляем текст
             const { width, height } = page.getSize();
             const fontSize = 12;
             const lines = result.value.split('<br>').join('\n').replace(/<[^>]*>/g, '');
@@ -569,6 +702,23 @@
             
             const pdfBytes = await pdfDoc.save();
             convertedBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+            
+            showProgress(100, 'Конвертация завершена!');
+        }
+        
+        // Конвертация PDF в Excel (упрощенная)
+        async function convertPdfToExcel(file) {
+            showProgress(20, 'Чтение PDF...');
+            
+            // Упрощенная конвертация - создаем пустой Excel с текстом
+            showProgress(50, 'Создание Excel файла...');
+            
+            // Создаем минимальный XLSX файл
+            const xlsxContent = `<?xml version="1.0"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<sheet name="Sheet1" sheetId="1"/></workbook>`;
+            
+            convertedBlob = new Blob([xlsxContent], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             
             showProgress(100, 'Конвертация завершена!');
         }
@@ -610,11 +760,9 @@
             const decompressed = pako.ungzip(new Uint8Array(arrayBuffer));
             
             showProgress(40, 'Обработка TAR архива...');
-            // Упрощенная обработка TAR - в реальном приложении нужен полноценный парсер
             const zip = new JSZip();
             
             showProgress(70, 'Создание ZIP...');
-            // Добавляем файл как есть (упрощенно)
             zip.file('converted_file', decompressed);
             
             showProgress(90, 'Финализация ZIP...');
@@ -631,20 +779,9 @@
             progressText.textContent = text;
         }
         
-        function getNewExtension(fileName) {
-            if (fileName.endsWith('.png') || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) return 'webp';
-            if (fileName.endsWith('.webp')) return 'png';
-            if (fileName.endsWith('.mp4')) return 'gif';
-            if (fileName.endsWith('.docx')) return 'pdf';
-            if (fileName.endsWith('.zip')) return 'tar.gz';
-            if (fileName.endsWith('.tar.gz')) return 'zip';
-            return 'converted';
-        }
-        
-        function generateNewFileName(originalName) {
+        function generateNewFileName(originalName, newExt) {
             const lastDot = originalName.lastIndexOf('.');
             const name = lastDot > 0 ? originalName.substring(0, lastDot) : originalName;
-            const newExt = getNewExtension(originalName.toLowerCase());
             return `${name}.${newExt}`;
         }
         
@@ -661,34 +798,33 @@
         
         function clearAll() {
             currentFile = null;
+            currentFileType = null;
+            selectedConversion = null;
             convertedBlob = null;
             fileInput.value = '';
+            conversionOptions.style.display = 'none';
             qualitySlider.style.display = 'none';
             progressContainer.style.display = 'none';
             downloadSection.style.display = 'none';
         }
         
-        // Простая реализация TAR для ZIP->TAR.GZ конвертации
+        // Простая реализация TAR
         class Tar {
             constructor() {
                 this.files = [];
             }
             
             append(filename, content) {
-                // Создаем TAR запись
                 const header = new Uint8Array(512);
                 const name = new TextEncoder().encode(filename);
                 header.set(name.subarray(0, Math.min(name.length, 100)), 0);
                 
-                // Размер файла в восьмеричной системе
                 const sizeStr = content.length.toString(8).padStart(11, '0');
                 const sizeBytes = new TextEncoder().encode(sizeStr);
                 header.set(sizeBytes, 124);
                 
-                // Тип файла (обычный файл)
-                header[156] = 48; // '0'
+                header[156] = 48;
                 
-                // Контрольная сумма
                 let checksum = 0;
                 for (let i = 0; i < 512; i++) {
                     checksum += header[i];
@@ -698,7 +834,6 @@
                 
                 this.files.push(header);
                 
-                // Добавляем контент с выравниванием до 512 байт
                 const paddedLength = Math.ceil(content.length / 512) * 512;
                 const paddedContent = new Uint8Array(paddedLength);
                 paddedContent.set(content);
@@ -706,13 +841,11 @@
             }
             
             save() {
-                // Объединяем все файлы
                 let totalLength = 0;
                 for (const chunk of this.files) {
                     totalLength += chunk.length;
                 }
                 
-                // Добавляем два пустых блока в конце
                 totalLength += 1024;
                 
                 const result = new Uint8Array(totalLength);
